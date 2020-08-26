@@ -1,5 +1,6 @@
 import React from "react";
 import CategoryService from "../services/CategoryService";
+import liveSearch from "../tools/LiveSearch";
 
 class CategoryComponent extends React.Component {
 
@@ -11,14 +12,15 @@ class CategoryComponent extends React.Component {
             reqName: '',
             deleted: '',
             categories: [],
+            banners: [],
             errorText: ''
         };
-        this.changeNameHandler = this.changeNameHandler.bind(this);
+        this.changeCategoryNameHandler = this.changeCategoryNameHandler.bind(this);
         this.changeRequestNameHandler = this.changeRequestNameHandler.bind(this);
         this.saveOrUpdateCategory = this.saveOrUpdateCategory.bind(this);
 
         this.addCategory = this.addCategory.bind(this);
-        this.updateCategory = this.updateCategory.bind(this);
+        this.deleteCategoryFromUI = this.deleteCategoryFromUI.bind(this);
     }
 
     componentDidMount() {
@@ -31,7 +33,8 @@ class CategoryComponent extends React.Component {
         } else {
             CategoryService.getCategoryById(this.state.id).then((res) => {
                 let category = res.data;
-                this.setState({name: category.name, reqName: category.reqName});
+                this.setState({name: category.name, reqName: category.reqName, banners: category.banners});
+                console.log('category => ' + JSON.stringify(category));
             });
         }
     }
@@ -41,17 +44,23 @@ class CategoryComponent extends React.Component {
         window.location.reload();
     }
 
-    updateCategory(id) {
+    deleteCategoryFromUI(id) {
         this.props.history.push(`/add-category/${id}`);
         window.location.reload();
     }
 
-    changeNameHandler = (event) => {
+    changeCategoryNameHandler = (event) => {
         this.setState({name: event.target.value});
     }
 
     changeRequestNameHandler = (event) => {
         this.setState({reqName: event.target.value});
+    }
+
+    cancel = (e) => {
+        e.preventDefault();
+        this.props.history.push('/category/');
+        window.location.reload();
     }
 
     saveOrUpdateCategory = (e) => {
@@ -93,12 +102,6 @@ class CategoryComponent extends React.Component {
         })
     }
 
-    cancel = (e) => {
-        e.preventDefault();
-        this.props.history.push('/category/');
-        window.location.reload();
-    }
-
     getTitle() {
         if (this.state.id === '_add') {
             return <h3 className="ml-2 p-3">Create new category</h3>;
@@ -109,9 +112,9 @@ class CategoryComponent extends React.Component {
 
     getButtonActivity() {
         if (this.state.id === '_add') {
-            return <button className="btn btn-danger" onClick={this.cancel.bind(this)}>Cancel</button>;
+            return <button className="btn btn-danger" id="deleteButton" onClick={this.cancel.bind(this)}>Cancel</button>;
         } else {
-            return <button className="btn btn-danger" onClick={this.deleteCategory.bind(this)}>Delete</button>;
+            return <button className="btn btn-danger" id="deleteButton" onClick={this.deleteCategory.bind(this)}>Delete</button>;
         }
     }
 
@@ -133,21 +136,27 @@ class CategoryComponent extends React.Component {
             <div className="row">
                 <div id="block1">
                     <h3 className="text-center p-3">Categories</h3>
+                    <input type="text"
+                           id="searchBar"
+                           name="search"
+                           onKeyUp={liveSearch.searchItems}
+                           placeholder="Enter category name...">
+                    </input>
                     <div className="list-group">
                         {
                             this.state.categories.map(
                                 category =>
-                                    <tr key={category.id}>
-                                        <td>
+                                    <ul>
+                                        <li className="itemsForSearch">
                                             <a href="#" className="text-reset ml-2"
-                                               onClick={() => this.updateCategory(category.id)}>{category.name}</a>
-                                        </td>
-                                    </tr>
+                                               onClick={() => this.deleteCategoryFromUI(category.id)}>{category.name}</a>
+                                        </li>
+                                    </ul>
                             )
                         }
                     </div>
                     <div>
-                        <button className="btn btn-info text-reset p" id="button"
+                        <button className="btn btn-primary" id="createButton"
                                 onClick={this.addCategory}>Create new category
                         </button>
                     </div>
@@ -162,7 +171,7 @@ class CategoryComponent extends React.Component {
                                 <label className="col-sm-2 col-form-label ml-5">Name</label>
                                 <div className="col-sm-5">
                                     <input type="text" name="categoryName" className="form-control"
-                                           value={this.state.name} onChange={this.changeNameHandler}/>
+                                           value={this.state.name} onChange={this.changeCategoryNameHandler}/>
                                 </div>
                             </div>
                             <div className="form-group row">
@@ -172,7 +181,7 @@ class CategoryComponent extends React.Component {
                                            value={this.state.reqName} onChange={this.changeRequestNameHandler}/>
                                 </div>
                             </div>
-                            <button className="btn btn-danger" onClick={this.saveOrUpdateCategory.bind(this)}>Save
+                            <button className="btn btn-dark" id="saveButton" onClick={this.saveOrUpdateCategory.bind(this)}>Save
                             </button>
                             {
                                 this.getButtonActivity()

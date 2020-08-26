@@ -1,6 +1,7 @@
 import React from "react";
 import BannerService from "../services/BannerService";
 import CategoryService from "../services/CategoryService";
+import LiveSearch from "../tools/LiveSearch";
 
 class BannerComponent extends React.Component {
 
@@ -12,18 +13,17 @@ class BannerComponent extends React.Component {
             price: '',
             content: '',
             deleted: '',
-            category: '',
             banners: [],
+            categoryName: '',
             categories: [],
-            filterBanners: []
         };
-        this.changeNameHandler = this.changeNameHandler.bind(this);
+        this.changeBannerNameHandler = this.changeBannerNameHandler.bind(this);
         this.changePriceHandler = this.changePriceHandler.bind(this);
         this.changeContentHandler = this.changeContentHandler.bind(this);
         this.saveOrUpdateBanner = this.saveOrUpdateBanner.bind(this);
 
         this.addBanner = this.addBanner.bind(this);
-        this.updateBanner = this.updateBanner.bind(this);
+        this.deleteBannerFromUI = this.deleteBannerFromUI.bind(this);
     }
 
     componentDidMount() {
@@ -52,12 +52,12 @@ class BannerComponent extends React.Component {
         window.location.reload();
     }
 
-    updateBanner(id) {
+    deleteBannerFromUI(id) {
         this.props.history.push(`/add-banner/${id}`);
         window.location.reload();
     }
 
-    changeNameHandler = (event) => {
+    changeBannerNameHandler = (event) => {
         this.setState({name: event.target.value});
     }
 
@@ -75,7 +75,7 @@ class BannerComponent extends React.Component {
 
         if (isValid) {
             let banner = {
-                name: this.state.name, price: this.state.price, category: this.state.category,
+                name: this.state.name, price: this.state.price,
                 content: this.state.content, deleted: false
             };
             console.log('banner => ' + JSON.stringify(banner));
@@ -97,8 +97,8 @@ class BannerComponent extends React.Component {
     deleteBanner = (e) => {
         e.preventDefault();
         let banner = {
-            name: this.state.name, price: this.state.price, category: this.state.category,
-            content: this.state.content, deleted: true
+            name: this.state.name, price: this.state.price,
+            content: this.state.content, deleted: true, category: this.createCategory()
         };
         console.log('banner => ' + JSON.stringify(banner));
 
@@ -124,9 +124,11 @@ class BannerComponent extends React.Component {
 
     getButtonActivity() {
         if (this.state.id === '_add') {
-            return <button className="btn btn-danger" onClick={this.cancel.bind(this)}>Cancel</button>;
+            return <button className="btn btn-danger" id="deleteButton"
+                           onClick={this.cancel.bind(this)}>Cancel</button>;
         } else {
-            return <button className="btn btn-danger" onClick={this.deleteBanner.bind(this)}>Delete</button>;
+            return <button className="btn btn-danger" id="deleteButton"
+                           onClick={this.deleteBanner.bind(this)}>Delete</button>;
         }
     }
 
@@ -153,21 +155,6 @@ class BannerComponent extends React.Component {
         return true;
     }
 
-    searchBanners() {
-        let val = document.getElementById("searchBar").value
-        val = val.toLowerCase();
-        let items = document.getElementsByClassName("itemsForSearch");
-        let i;
-
-        for (i = 0; i < items.length; i++) {
-            if (!items[i].innerHTML.toLowerCase().includes(val)) {
-                items[i].style.display = "none";
-            } else {
-                items[i].style.display = "list-item";
-            }
-        }
-    }
-
     render() {
         return (
             <div className="row">
@@ -176,23 +163,26 @@ class BannerComponent extends React.Component {
                     <input type="text"
                            id="searchBar"
                            name="search"
-                           onKeyUp={this.searchBanners}
-                           placeholder="Enter banner name">
+                           onKeyUp={LiveSearch.searchItems}
+                           placeholder="Enter banner name...">
                     </input>
-                    <div className="list-group">
+                    <div>
                         {
                             this.state.banners
                                 .map(
                                     banner =>
                                         <ul>
-                                            <li ref="#" className="text-reset ml-2 itemsForSearch"
-                                                onClick={() => this.updateBanner(banner.id)}>{banner.name}</li>
+                                            <li className="itemsForSearch">
+                                                <a href="#" className="text-reset ml-2"
+                                                   onClick={() => this.deleteBannerFromUI(banner.id)}>{banner.name}
+                                                </a>
+                                            </li>
                                         </ul>
                                 )
                         }
                     </div>
                     <div>
-                        <button className="btn btn-info text-reset p" id="button"
+                        <button className="btn btn-primary" id="createButton"
                                 onClick={this.addBanner}>Create new Banner
                         </button>
                     </div>
@@ -210,7 +200,7 @@ class BannerComponent extends React.Component {
                                            name="bannerName"
                                            className="form-control"
                                            value={this.state.name}
-                                           onChange={this.changeNameHandler}>
+                                           onChange={this.changeBannerNameHandler}>
                                     </input>
                                 </div>
                             </div>
@@ -241,7 +231,8 @@ class BannerComponent extends React.Component {
                                               value={this.state.content} onChange={this.changeContentHandler}/>
                                 </div>
                             </div>
-                            <button className="btn btn-danger" onClick={this.saveOrUpdateBanner.bind(this)}>Save
+                            <button className="btn btn-dark" id="saveButton"
+                                    onClick={this.saveOrUpdateBanner.bind(this)}>Save
                             </button>
                             {
                                 this.getButtonActivity()
