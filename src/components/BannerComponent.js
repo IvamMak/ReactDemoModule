@@ -14,7 +14,8 @@ class BannerComponent extends React.Component {
             deleted: '',
             category: '',
             banners: [],
-            categories: []
+            categories: [],
+            filterBanners: []
         };
         this.changeNameHandler = this.changeNameHandler.bind(this);
         this.changePriceHandler = this.changePriceHandler.bind(this);
@@ -38,8 +39,10 @@ class BannerComponent extends React.Component {
         } else {
             BannerService.getBannerById(this.state.id).then((res) => {
                 let banner = res.data;
-                this.setState({name: banner.name, price: banner.price,
-                    content: banner.content, category: banner.category});
+                this.setState({
+                    name: banner.name, price: banner.price,
+                    content: banner.content, category: banner.category
+                });
             });
         }
     }
@@ -150,22 +153,42 @@ class BannerComponent extends React.Component {
         return true;
     }
 
+    searchBanners() {
+        let val = document.getElementById("searchBar").value
+        val = val.toLowerCase();
+        let items = document.getElementsByClassName("itemsForSearch");
+        let i;
+
+        for (i = 0; i < items.length; i++) {
+            if (!items[i].innerHTML.toLowerCase().includes(val)) {
+                items[i].style.display = "none";
+            } else {
+                items[i].style.display = "list-item";
+            }
+        }
+    }
+
     render() {
         return (
             <div className="row">
                 <div id="block1">
                     <h3 className="text-center p-3">Banners</h3>
+                    <input type="text"
+                           id="searchBar"
+                           name="search"
+                           onKeyUp={this.searchBanners}
+                           placeholder="Enter banner name">
+                    </input>
                     <div className="list-group">
                         {
-                            this.state.banners.map(
-                                banner =>
-                                    <tr key={banner.id}>
-                                        <td>
-                                            <a href="#" className="text-reset ml-2"
-                                               onClick={() => this.updateBanner(banner.id)}>{banner.name}</a>
-                                        </td>
-                                    </tr>
-                            )
+                            this.state.banners
+                                .map(
+                                    banner =>
+                                        <ul>
+                                            <li ref="#" className="text-reset ml-2 itemsForSearch"
+                                                onClick={() => this.updateBanner(banner.id)}>{banner.name}</li>
+                                        </ul>
+                                )
                         }
                     </div>
                     <div>
@@ -183,8 +206,12 @@ class BannerComponent extends React.Component {
                             <div className="form-group row">
                                 <label className="col-sm-2 col-form-label ml-5">Name</label>
                                 <div className="col-sm-5">
-                                    <input type="text" name="bannerName" className="form-control"
-                                           value={this.state.name} onChange={this.changeNameHandler}/>
+                                    <input type="text"
+                                           name="bannerName"
+                                           className="form-control"
+                                           value={this.state.name}
+                                           onChange={this.changeNameHandler}>
+                                    </input>
                                 </div>
                             </div>
                             <div className="form-group row">

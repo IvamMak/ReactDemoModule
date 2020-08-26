@@ -53,6 +53,16 @@
   border: 1px solid black;
 }
 
+#searchBar{
+  margin-left: 15%;
+  padding:15px;
+  border-radius: 10px;
+}
+
+.itemsForSearch{
+  display: list-item;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
